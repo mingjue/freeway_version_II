@@ -18,6 +18,7 @@ var app = express();
 const hostname = '127.0.0.1';
 const port = 3001;
 
+
 app.use(cors());
 
 mongoose.connect('mongodb://localhost:27017/freeway', {useNewUrlParser: true});
@@ -114,7 +115,7 @@ mongoose.connect('mongodb://localhost:27017/freeway', {useNewUrlParser: true});
 var stationsSchema = new mongoose.Schema({
     milepost:Number,
     locationtext:String,
-    stationid:Number,
+    stationid:Array,
     upstream:Number,
     downstream:Number,
     numberlanes:Number,
@@ -358,7 +359,7 @@ async function getStationVolume(req,res){
   
 }
 
-async function getOverSpeed(req,res){
+async function getOverSpeedXXXX(req,res){
   var piplineSpeed;
   var location = req.params.location;
   var starttime;
@@ -390,8 +391,7 @@ async function getStationDetails(req,res){
   var piplineDetails;
   var location = req.params.location;
   console.log(`Before the if check the req.query, is req null, ${req==null}, is req.query null: ${req.params == null}`)
-  piplineDetails= [
-    {'$match':{"locationtext":location}}]
+  piplineDetails= [{'$match':{"locationtext":location}}]
   let detailsResult = stationTable(piplineDetails)
   return detailsResult
   
@@ -402,9 +402,12 @@ async function stationNameToId(req,res){
   var piplineDetails;
   var location = req.params.location;
   console.log(`Before the if check the req.query, is req null, ${req==null}, is req.query null: ${req.params == null}`)
-  piplineDetails= {"locationtext":location}
+  //piplineDetails= [{'$match':{"locationtext":location}}];
+  piplineDetails= {"locationtext":location};
   try {
     //var detectoridresult = await uniondata.aggregate(pipline1).exec();
+    console.log(`what's the pip;ine ${JSON.stringify(piplineDetails)}`)
+    //var result = await stations.aggregate(piplineDetails);
     var result = await stations.find(piplineDetails);
     // var idTest = JSON.parse(JSON.stringify(detectoridresult));
     // console.log(idTest);
@@ -418,7 +421,7 @@ async function stationNameToId(req,res){
 
 
 async function getAllStationsName(req,res){
-  console.log(`$$$$$$$$$$$$IM here`)
+
   var piplineDetails;
   piplineDetails= {}
   console.log(`piplie value ${JSON.stringify(piplineDetails)}`)
@@ -434,6 +437,79 @@ async function getAllStationsName(req,res){
       console.log(`error occured : ${err}`);
   }
 }
+
+
+async function getOverSpeed(req,res){
+  var piplineSpeed;
+  var location = req.params.location;
+  var starttime;
+  var endtime;
+  var idlist = req.params.idlist;
+  console.log(`Before the if check the req.query, is req null, ${req==null}, is req.query null: ${req.params == null}`)
+  if (req && req.params && req.params.starttime && req.params.endtime){
+    starttime = new Date(req.params.starttime);
+    endtime = new Date(req.params.endtime);
+  }
+  console.log(`start time :${req.params.starttime}`)
+  console.log(`End time :${req.params.endtime}`)
+  console.log(`location :${location}`)
+  console.log(`idlist :${idlist}`)
+
+  piplineSpeed= [
+    {'$match':{"detectorid":{"$in":idlist}}},
+    {'$match':{"starttime":{'$gt':starttime,'$lt':endtime}}},
+    {'$match':{"speed":{'$gt':60}}},
+    {'$group':{
+      "_id":{"detectorid":"$detectorid"},
+      "overspeednumber":{'$sum':1}
+    }},
+]
+  let overSpeed = calculateOverSpeed(piplineSpeed)
+  return overSpeed
+  
+}
+
+async function speedAndVolume(req,res){
+  var pipline;
+  var location = req.params.location;
+  var starttime;
+  var endtime;
+  var idlist = req.params.idlist.split(",").map(x=>Number(x));
+  console.log(`Before the if check the req.query, is req null, ${req==null}, is req.query null: ${req.params == null}`)
+  if (req && req.params && req.params.starttime && req.params.endtime){
+    starttime = new Date(req.params.starttime);
+    endtime = new Date(req.params.endtime);
+  }
+  console.log(`start time :${starttime}`)
+  console.log(`location :${location}`)
+  console.log(`idlist :${idlist}`)
+  
+  pipline= [
+      {'$match':{"detectorid":{"$in":idlist}}},
+      {'$match':{"starttime":{'$gt':starttime,'$lt':endtime}}},
+      {'$group':{
+          "_id":{"detectorid":"$detectorid"},
+          "totalvolume":{'$sum':"$volume"},
+          "totalspeed":{'$sum':"$speed"},
+      }}
+  ]
+  //detectorId(pipline1);
+  console.log(`piplie : ${JSON.stringify(pipline)}`)
+
+  try {
+    //var detectoridresult = await uniondata.aggregate(pipline1).exec();
+    var result = await loopdata.aggregate(pipline);
+    // var idTest = JSON.parse(JSON.stringify(detectoridresult));
+    // console.log(idTest);
+    // console.log(idTest[0]._id.detectorid);
+    console.log(result);
+    return result
+  } catch (err) {
+      console.log(`error occured : ${err}`);
+  }
+}
+
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -465,14 +541,20 @@ app.get("/volume/:location/:starttime?/:endtime?",cors(),asyncHandler(async(req,
   res.send(await getStationVolume(req,res))
 }));
 
+//Get total average speed and total volume
+app.get("/sv/:location/:idlist/:starttime?/:endtime?",cors(),asyncHandler(async(req, res,next)=>{
+  res.send(await speedAndVolume(req,res))
+}));
+
+
 
 // Over speed in one station in period time 
-app.get("/speed/:location/:starttime?/:endtime?",cors(),asyncHandler(async(req, res,next)=>{
+app.get("/speed/:location/:idlist/:starttime?/:endtime?",cors(),asyncHandler(async(req, res,next)=>{
   res.send(await getOverSpeed(req,res))
 }));
 
 //Convert all the station name into ID
-app.get("/station/:location",cors(),asyncHandler(async(req, res,next)=>{
+app.get("/id/:location",cors(),asyncHandler(async(req, res,next)=>{
   res.send(await stationNameToId(req,res))
 }));
 
