@@ -22,7 +22,7 @@ class StationApiFetcher {
    
     async fetchStationName() {
        
-        let fullUrl = STATION_URL +'/station'
+        let fullUrl = STATION_URL +'/stationname'
         const response = await fetch(encodeURI(fullUrl), {
             headers: {
                 "method": "POST",
@@ -45,7 +45,7 @@ class StationApiFetcher {
         let stationsDropDown = []
       
         for (let stationInfo of json) {
-          let stationName = stationInfo._id.locationtext
+          let stationName = stationInfo.locationtext
           stationsDropDown.push(stationName)
         }
         stationsDropDown = stationsDropDown.sort()

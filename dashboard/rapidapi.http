@@ -84,3 +84,11 @@ content-type: application/json
 # Get overspeed
 GET http://localhost:3001/speed/1345,1346,1347/2011-10-15/2011-11-20 HTTP/1.1
 content-type: application/json
+
+
+###
+
+# Get stations details
+GET http://localhost:3001/details/Sunnyside%20NB HTTP/1.1
+content-type: application/json
+

@@ -11,6 +11,13 @@ class SummaryTable extends React.Component {
             return "n/a"
     }
 
+    test(){
+        return(
+            this.props.details[0].stationid.map((id)=>{
+                return <tr><td>{id}</td></tr>
+            }))
+    }
+
     renderHeader() {
         return <thead>
             <tr>
@@ -32,7 +39,6 @@ class SummaryTable extends React.Component {
     }
 
     renderBody() {
-        console.log(this.props.details)
         return <tbody>
             <tr>
                 <td>{this.renderLabel("latlon")}</td>
@@ -54,25 +60,11 @@ class SummaryTable extends React.Component {
                 <td >{this.renderLabel("numberlanes")}</td>
                 <td>{this.props.details[0].numberlanes}</td>
             </tr>
+
             <tr>
-                <td >{this.renderLabel("highwayname")}</td>
-                <td>{this.props.details[0].highwayname}</td>
+                <td rowSpan={this.props.details[0].stationid.length+1}>{this.renderLabel("detectorid")}</td>
             </tr>
-            <tr>
-                <td >{this.renderLabel("direction")}</td>
-                <td>{this.props.details[0].direction}</td>
-            </tr>
-            <tr>
-                <td rowSpan='3'>{this.renderLabel("detectorid")}</td>
-                <td>{this.props.details[0].detectorid[0]}</td>
-            </tr>
-            <tr>
-                <td>{this.props.details[0].detectorid[1]}</td>
-            </tr>
-            <tr>
-                <td>{this.props.details[0].detectorid[2]}</td>
-            </tr>
-            
+                {this.test()}
         </tbody>
     }
 

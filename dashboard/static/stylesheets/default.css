@@ -248,7 +248,7 @@ nav.ui.menu {
   .ui.menu .item.desktop-only {
     display: none; }
 
-  .ui[class*="padded"].segment {
+  .ui[className*="padded"].segment {
     padding: 1.5rem; }
 
   .ui.grid .ui.stackable.grid {

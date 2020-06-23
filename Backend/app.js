@@ -391,8 +391,8 @@ async function getStationDetails(req,res){
   var piplineDetails;
   var location = req.params.location;
   console.log(`Before the if check the req.query, is req null, ${req==null}, is req.query null: ${req.params == null}`)
-  piplineDetails= [{'$match':{"locationtext":location}}]
-  let detailsResult = stationTable(piplineDetails)
+  piplineDetails={"locationtext":location}
+  let detailsResult = await stations.find(piplineDetails)
   return detailsResult
   
 }
@@ -441,10 +441,9 @@ async function getAllStationsName(req,res){
 
 async function getOverSpeed(req,res){
   var piplineSpeed;
-  var location = req.params.location;
   var starttime;
   var endtime;
-  var idlist = req.params.idlist;
+  var idlist = req.params.idlist.split(",").map(x=>Number(x));
   console.log(`Before the if check the req.query, is req null, ${req==null}, is req.query null: ${req.params == null}`)
   if (req && req.params && req.params.starttime && req.params.endtime){
     starttime = new Date(req.params.starttime);
@@ -452,18 +451,16 @@ async function getOverSpeed(req,res){
   }
   console.log(`start time :${req.params.starttime}`)
   console.log(`End time :${req.params.endtime}`)
-  console.log(`location :${location}`)
   console.log(`idlist :${idlist}`)
 
   piplineSpeed= [
-    {'$match':{"detectorid":{"$in":idlist}}},
-    {'$match':{"starttime":{'$gt':starttime,'$lt':endtime}}},
-    {'$match':{"speed":{'$gt':60}}},
+    {'$match':{"$and":[{"starttime":{'$gt':starttime,'$lt':endtime}},{"detectorid":{"$in":idlist}},{"speed":{'$gt':60}}]}},
     {'$group':{
       "_id":{"detectorid":"$detectorid"},
       "overspeednumber":{'$sum':1}
     }},
-]
+  ]
+  console.log(`show me the piplie ${JSON.stringify(piplineSpeed)}`)
   let overSpeed = calculateOverSpeed(piplineSpeed)
   return overSpeed
   
@@ -549,7 +546,7 @@ app.get("/sv/:location/:idlist/:starttime?/:endtime?",cors(),asyncHandler(async(
 
 
 // Over speed in one station in period time 
-app.get("/speed/:location/:idlist/:starttime?/:endtime?",cors(),asyncHandler(async(req, res,next)=>{
+app.get("/speed/:idlist/:starttime?/:endtime?",cors(),asyncHandler(async(req, res,next)=>{
   res.send(await getOverSpeed(req,res))
 }));
 
