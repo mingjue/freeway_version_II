@@ -74,8 +74,8 @@ class StationApiFetcher {
     }
 
 
-    async overSpeed(station,from,to) {
-        let fullUrl= `http://localhost:3001/speed/${station}/${from}/${to}`
+    async overSpeed(idlist,from,to) {
+        let fullUrl= `http://localhost:3001/speed/${idlist}/${from}/${to}`
         //console.log(`the url is :${fullUrl}`)
         const response = await fetch(encodeURI(fullUrl), {
             headers: {
@@ -96,8 +96,8 @@ class StationApiFetcher {
         return total
     }
 
-    async stationVolume(station,from,to) {
-        let fullUrl= `http://localhost:3001/volume/${station}/${from}/${to}`
+    async stationVolumeAndSpeed(station,idlist,from,to) {
+        let fullUrl= `http://localhost:3001/sv/${station}/${idlist}/${from}/${to}`
         //console.log(`the url is :${fullUrl}`)
         const response = await fetch(encodeURI(fullUrl), {
             headers: {
@@ -106,16 +106,20 @@ class StationApiFetcher {
             }
         })
         let json = []
-        let totol = 0
+        let totol_volume_number = 0
+        let totol_speed_number =0
+        let total = []
         if (response.status === 200) {
             json = await response.json()
             for (let value of json){
-                totol += value.totalvolume
+                totol_volume_number += value.totalvolume
+                totol_speed_number += value.totalspeed
             }
         } else {
             console.error(`error response status: ${response.status}`)
         }
-        return totol
+        total.push(totol_volume_number,totol_speed_number)
+        return total
     }
 
     async averageTravelTime(station,from,to) {
@@ -219,9 +223,9 @@ class App extends React.Component {
             inputStartingDay = days[i];
             inputEndingDay = days[i+1]
             //console.log(`Check the inpit days :input Starting Day:${inputStartingDay} then next input Ending Day ${inputEndingDay}`)
-            dailyOverSpeed.push (await test.overSpeed(this.state.station,inputStartingDay,inputEndingDay)/100)
-            dailyTravelTime.push(await test.averageTravelTime(this.state.station,inputStartingDay,inputEndingDay)/60)
-            dailyVolume.push((await test.stationVolume(this.state.station,inputStartingDay,inputEndingDay))/1000)
+            //dailyOverSpeed.push (await test.overSpeed(this.state.station,inputStartingDay,inputEndingDay)/100)
+            //dailyTravelTime.push(await test.averageTravelTime(this.state.station,inputStartingDay,inputEndingDay)/60)
+            //dailyVolume.push((await test.stationVolume(this.state.station,inputStartingDay,inputEndingDay))/1000)
         }
         
 
@@ -297,21 +301,23 @@ class App extends React.Component {
         this.state.station = e.target.value
         //console.log(`input station value :${station}`)
         let stationDetails = await test.fetchStationsDetails(this.state.station)
+        
         // another call to get card information
-        let speedinformation = await test.overSpeed(this.state.station,this.state.from,this.state.to)
-
-        let stationVolumeNumber = await test.stationVolume(this.state.station,this.state.from,this.state.to)
-        let travelTimeResult = await test.averageTravelTime(this.state.station,this.state.from,this.state.to)
-        travelTimeResult = travelTimeResult/60
+        let speedinformation = await test.overSpeed(stationDetails[0].stationid,this.state.from,this.state.to)
+        let stationTotalNumber = await test.stationVolumeAndSpeed(this.state.station,stationDetails[0].stationid,this.state.from,this.state.to)
+        let totalCarVolume = stationTotalNumber[0]
+        let travelTimeResult = stationTotalNumber[1]/(stationDetails[0].length * totalCarVolume)*60
+        //let travelTimeResult = await test.averageTravelTime(this.state.station,this.state.from,this.state.to)
+       console.log(`show me the travel time ${travelTimeResult}`)
         let getGrapData =await this.buildGraphData(this.state.from)
         this.setState({
             showSpinner:false,
             details:stationDetails,
             overspeednumber:speedinformation,
-            volume:stationVolumeNumber,
+            volume:totalCarVolume,
             traveltimecal:travelTimeResult,
             graphData:getGrapData,
-            isloading:false,
+            isloading:false
         })
     }
 
@@ -336,7 +342,8 @@ class App extends React.Component {
         let showTime = (!this.isEmpty(this.state.from)&&(this.state.to))
         let showGraph = !this.isEmpty(this.state.graphData)
         console.log(`value of over speed number  :${this.state.overspeednumber}`)
-        console.log(`value of load :${this.state.isloading}`)
+        console.log(`value of volume number  :${this.state.volume}`)
+        console.log(`value of travel time number  :${this.state.traveltimecal}`)
         return (
             <>
             <div className="ui centered three column row">

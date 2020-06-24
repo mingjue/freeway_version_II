@@ -13,8 +13,8 @@ class SummaryTable extends React.Component {
 
     test(){
         return(
-            this.props.details[0].stationid.map((id)=>{
-                return <tr><td>{id}</td></tr>
+            this.props.details[0].stationid.map((id,index)=>{
+                return <tr key={index}><td>{id}</td></tr>
             }))
     }
 

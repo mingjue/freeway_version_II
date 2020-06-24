@@ -72,11 +72,6 @@ content-type: application/json
 GET http://localhost:3001/sv/Sunnyside%20NB/1345,1346,1347/2011-10-15/2011-11-20 HTTP/1.1
 content-type: application/json
 
-###
-
-# Get overspeed
-GET http://localhost:3001/sv/Sunnyside%20NB/1345,1346,1347/2011-10-15/2011-11-20 HTTP/1.1
-content-type: application/json
 
 
 ###
@@ -86,9 +81,17 @@ GET http://localhost:3001/speed/1345,1346,1347/2011-10-15/2011-11-20 HTTP/1.1
 content-type: application/json
 
 
+
 ###
 
 # Get stations details
 GET http://localhost:3001/details/Sunnyside%20NB HTTP/1.1
+content-type: application/json
+
+
+###
+
+# Get total volume and total average speed
+GET http://localhost:3001/sv/Sunnyside%20NB/1361,1362,1363/2011-10-12/2011-10-13 HTTP/1.1
 content-type: application/json
 
