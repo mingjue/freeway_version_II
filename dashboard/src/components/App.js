@@ -230,9 +230,9 @@ class App extends React.Component {
             let stationTotalNumber = await test.stationVolumeAndSpeed(this.state.station,stationDetails[0].stationid,inputStartingDay,inputEndingDay)
             let totalCarVolume = stationTotalNumber[0]
             let travelTimeResult = stationTotalNumber[1]/(stationDetails[0].length * totalCarVolume)*60
-            dailyOverSpeed.push(speedinformation/100)
-            dailyTravelTime.push(travelTimeResult/60)
-            dailyVolume.push(totalCarVolume/1000)
+            dailyOverSpeed.push((speedinformation/100).toPrecision(2))
+            dailyTravelTime.push((travelTimeResult/60).toPrecision(2))
+            dailyVolume.push((totalCarVolume/1000).toPrecision(2))
         }
         
 
