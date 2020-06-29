@@ -2,9 +2,6 @@ import React from "react"
 import StatisticsCard from "./StatisticsCard"
 
 const Statistics = (props) => {
-    console.log(`in the statistics class ${props.overspeednumber}`)
-    console.log(`in the statistics class ${props.volume}`)
-    console.log(`in the statistics class ${props.traveltime}`)
     return (
         <div className={"ui three cards"} style={{ paddingTop: "10px", paddingBottom: "10px"}}>
             <StatisticsCard label="Over Speed Number" total={props.overspeednumber} color={"red"} />

@@ -172,7 +172,9 @@ class App extends React.Component {
             from:"",
             to:"",
             isloading :true,
-            showSpinner:false
+            showSpinner:false,
+            stationids:[],
+            stationlength:0
         }
     }
 
@@ -191,11 +193,9 @@ class App extends React.Component {
         return true
     }
 
-    buildGraphData = async (from) => {
+    buildGraphData = async (stationDetails,from) => {
         // assemble the graph data...
         let graphData = {}
-        
-        console.log(`input station value :${this.state.station}`)
         from = new Date(from)
         let date = new Date(from.getFullYear(), from.getMonth(), 1);
         
@@ -218,14 +218,21 @@ class App extends React.Component {
         for (let day of days){
             dateDisplay.push (moment(day).format('MM/DD/YYYY'));
         }
-
+        
         for (i=0; i<days.length-1;i++){
             inputStartingDay = days[i];
             inputEndingDay = days[i+1]
-            //console.log(`Check the inpit days :input Starting Day:${inputStartingDay} then next input Ending Day ${inputEndingDay}`)
+            console.log(`Check the inpit days :input Starting Day:${inputStartingDay} then next input Ending Day ${inputEndingDay}`)
             //dailyOverSpeed.push (await test.overSpeed(this.state.station,inputStartingDay,inputEndingDay)/100)
             //dailyTravelTime.push(await test.averageTravelTime(this.state.station,inputStartingDay,inputEndingDay)/60)
             //dailyVolume.push((await test.stationVolume(this.state.station,inputStartingDay,inputEndingDay))/1000)
+            let speedinformation = await test.overSpeed(stationDetails[0].stationid,inputStartingDay,inputEndingDay)
+            let stationTotalNumber = await test.stationVolumeAndSpeed(this.state.station,stationDetails[0].stationid,inputStartingDay,inputEndingDay)
+            let totalCarVolume = stationTotalNumber[0]
+            let travelTimeResult = stationTotalNumber[1]/(stationDetails[0].length * totalCarVolume)*60
+            dailyOverSpeed.push(speedinformation/100)
+            dailyTravelTime.push(travelTimeResult/60)
+            dailyVolume.push(totalCarVolume/1000)
         }
         
 
@@ -308,8 +315,9 @@ class App extends React.Component {
         let totalCarVolume = stationTotalNumber[0]
         let travelTimeResult = stationTotalNumber[1]/(stationDetails[0].length * totalCarVolume)*60
         //let travelTimeResult = await test.averageTravelTime(this.state.station,this.state.from,this.state.to)
+        let getGrapData =await this.buildGraphData(stationDetails,this.state.from)
        console.log(`show me the travel time ${travelTimeResult}`)
-        let getGrapData =await this.buildGraphData(this.state.from)
+      
         this.setState({
             showSpinner:false,
             details:stationDetails,
@@ -317,6 +325,8 @@ class App extends React.Component {
             volume:totalCarVolume,
             traveltimecal:travelTimeResult,
             graphData:getGrapData,
+            stationids:stationDetails[0].stationid,
+            stationlength:stationDetails[0].length,
             isloading:false
         })
     }
@@ -373,7 +383,7 @@ class App extends React.Component {
                     </div>
                     
                     <div className="ui centered column row">
-                        <SearchBar stations={this.state.stations} handleInputChange={this.handleInputChange} />
+                        <SearchBar stations={this.state.stations} handleInputChange={this.handleInputChange}/>
                     </div>
                     <div className="row">
                         <div className="five wide column"></div>
